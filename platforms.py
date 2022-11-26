@@ -50,19 +50,21 @@ print('before loop')
 clock = pygame.time.Clock()
 running = True
 mouse_up = True
+grabbed = False
+
 while running:
     events = pygame.event.get()
     for event in events:
         if event.type == QUIT:
             running = False
         
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mouse_up = False
-        if not mouse_up:
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                mouse_up = True
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and ball.rect.collidepoint(pygame.mouse.get_pos()):
+            grabbed = True
+        
+        if grabbed and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            grabbed = False
 
-    if not mouse_up and ball.rect.collidepoint(pygame.mouse.get_pos()):
+    if grabbed:
         ball.follow()
         ball.speed = 0
     else:
