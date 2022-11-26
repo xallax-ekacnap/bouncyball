@@ -31,7 +31,7 @@ class Ball(pygame.sprite.Sprite):
     
     def follow(self):
         mouse_pos = pygame.mouse.get_pos()
-        self.rect = pygame.Rect((mouse_pos[0] - self.size[0] / 2, mouse_pos[1] - self.size[1] / 2), self.size)
+        self.rect = pygame.Rect((mouse_pos[0] - self.offset[0], mouse_pos[1] - self.offset[1]), self.size)
     
     def fall(self):
         if self.rect[1] > HEIGHT - self.size[1]:
@@ -41,6 +41,10 @@ class Ball(pygame.sprite.Sprite):
            self.speed += 1
         self.rect.move_ip(0, self.speed)
         print(self.speed)
+    
+    def set_offset(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        self.offset = (mouse_x - self.rect[0], mouse_y - self.rect[1])
 
 
 ball_img = pygame.image.load('bouncy_ball.jpeg')
@@ -60,6 +64,7 @@ while running:
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and ball.rect.collidepoint(pygame.mouse.get_pos()):
             grabbed = True
+            ball.set_offset()
         
         if grabbed and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             grabbed = False
