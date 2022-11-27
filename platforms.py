@@ -12,7 +12,7 @@ from pygame.locals import (
 
 pygame.init()
 
-WIDTH, HEIGHT = 4096 / 2, 2304 / 2
+WIDTH, HEIGHT = 4096 / 2, 1000
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -43,34 +43,29 @@ class Ball(pygame.sprite.Sprite):
         if self.rect[1] > HEIGHT - self.size[1]:
             return True
     
-    def horizontal_check(self):
+    def side_check(self):
         if self.rect[0] > WIDTH - self.size[0] or self.rect[0] < 0:
             return True
 
     def fall(self, fall_ticks, grabbed):
-
-        if grabbed:
-            if self.speed <= 0:
-                self.thrown = True
-        
-        if self.thrown and self.speed > 0:
-            fall_ticks = 0
-
         if self.bottom_check():
-            self.yspeed = 0
+            self.yspeed *= -0.25
+            fall_ticks = 0
             if self.xspeed > 0:
-              self.xspeed -= 0.5
+              self.xspeed -= 1
             elif self.xspeed < 0:
-               self.xspeed += 0.5
+               self.xspeed += 1
             self.rect = pygame.Rect((self.rect[0], HEIGHT + 1 - self.size[1]), self.size)
         else:
            self.yspeed += (9.8 * (fall_ticks/ 50)) ** 2
         self.rect.move_ip(self.xspeed, self.yspeed)
-        if self.horizontal_check():
-            self.xspeed = 0
         
         if self.top_check():
+            fall_ticks = 0
             self.yspeed = 0
+        
+        if self.side_check():
+            self.xspeed *= -1
         #print(self.xspeed, self.yspeed)
 
     def set_offset(self):
