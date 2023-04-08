@@ -12,9 +12,13 @@ from pygame.locals import (
 
 pygame.init()
 
-WIDTH, HEIGHT = 4096 / 2, 1000
+WIDTH, HEIGHT = 1500, 800
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+gravity = 9.8
+
+font = pygame.font.Font('freesansbold.ttf', 32)
 
 colors = {'white': (255, 255, 255), 'black': (0, 0, 0), 'red': (255, 0, 0), 'green': (0, 255, 0), 'blue': (0, 0, 255)}
 
@@ -29,7 +33,6 @@ class Ball(pygame.sprite.Sprite):
         self.xspeed = 0
         self.offset = (0, 0)
         self.rect = self.surf.get_rect()
-        self.thrown = False
     
     def follow(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -47,9 +50,13 @@ class Ball(pygame.sprite.Sprite):
         if self.rect[0] > WIDTH - self.size[0] or self.rect[0] < 0:
             return True
 
-    def fall(self, fall_ticks, grabbed):
+    def fall(self, fall_ticks):
+        try:
+            increment = (9.8 / gravity) / 4 * -1
+        except ZeroDivisionError:
+            increment = 0
         if self.bottom_check():
-            self.yspeed *= -0.25
+            self.yspeed *= increment * -1 if increment > 0.25 else -0.25
             fall_ticks = 0
             if self.xspeed > 0:
               self.xspeed -= 1
@@ -57,12 +64,13 @@ class Ball(pygame.sprite.Sprite):
                self.xspeed += 1
             self.rect = pygame.Rect((self.rect[0], HEIGHT + 1 - self.size[1]), self.size)
         else:
-           self.yspeed += (9.8 * (fall_ticks/ 50)) ** 2
+           self.yspeed += (gravity * (fall_ticks/ 50)) ** 2
         self.rect.move_ip(self.xspeed, self.yspeed)
         
         if self.top_check():
             fall_ticks = 0
-            self.yspeed = 0
+            self.yspeed *= -0.25
+            
         
         if self.side_check():
             self.xspeed *= -1
@@ -99,6 +107,19 @@ while running:
             grabbed = False
             ball.xspeed = release_coords[0] / 4
             ball.yspeed = release_coords[1] / 4
+        
+        pressed_keys = pygame.key.get_pressed()
+
+        if event.type == KEYDOWN:
+            if pressed_keys[K_UP]:
+                gravity += 0.5
+            if pressed_keys[K_DOWN]:
+                gravity -= 0.5
+            if gravity <= 0:
+                gravity = 0
+
+    text = font.render(f'Gravity: {round(gravity, 2)} m/s^2', True, (0, 0, 0))
+    textrect = text.get_rect()
 
     if ball.bottom_check() or grabbed:
         fall_ticks = 0
@@ -108,10 +129,11 @@ while running:
     if grabbed:
         ball.follow()
     else:
-        ball.fall(fall_ticks, grabbed)
+        ball.fall(fall_ticks)
 
     screen.fill(colors['white'])
     screen.blit(ball.surf, ball.rect)
+    screen.blit(text, textrect)
     pygame.display.flip()
     clock.tick(50)
     event_types = {event.type for event in events}
